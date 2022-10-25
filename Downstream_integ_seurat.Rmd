@@ -1,0 +1,146 @@
+---
+title: "Downstream analysis - Heat map"
+output: html_document
+date: '2022-06-01'
+---
+
+DOWNSTREAM ANALYSIS OF SEURAT INTEGRATED 24 DATASETS FROM 8 TISSUES
+
+```{r setup, include=FALSE}
+
+library(Seurat)
+
+# In case you want to re-open the integrated file
+Integ_combined_24data_seurat <- readRDS(file = "/home/poppy/Dental pulp/Integration output/SeuratInteg_24sam_8tis.rds")
+
+```
+
+========== PCA AND HEATMAP ANALYSIS ==========
+
+```{r}
+
+library(tidyverse)
+library(reshape2)
+library(ggplot2)
+library(parallelDist)
+library(dplyr)
+library(ComplexHeatmap)
+
+# Calculate average gene expression
+Idents(Integ_combined_24data_seurat) <- "dataset" 
+Average_data_Integ_combined_24data_seurat <- AverageExpression(Integ_combined_24data_seurat , assays = "RNA" , slot = "data" )
+#write.csv(Average_data_Integ_combined_24data_seurat, "Average_data_Integ_combined_24data_seurat.csv")
+
+# Run the PCA
+pca <- prcomp(t(Average_data_Integ_combined_24data_seurat$RNA))
+pca_perc <- round(100*pca$sdev^2/sum(pca$sdev^2),1)
+df_pca_Integ_combined_24data_seurat <- data.frame(PC1 = pca$x[,1], PC2 = pca$x[,2], sample = colnames(Average_data_Integ_combined_24data_seurat$RNA))
+df_pca_Integ_combined_24data_seurat
+
+# Add metadata
+df_pca_Integ_combined_24data_seurat$dataset <- c("DTP1", "DTP2", "DTP3", "DTP4", "DTP5", "DTP6", "DTP7", "DTP8", "BM1", "BM2", "BM3", "LN1", "LN2", "LUNG3", "LUNG4", "LUNG5", "LUNG6", "ADP3", "PBMC1", "PBMC2",  "PBMC3", "SKIN1", "SKIN2", "SPLEEN1") 
+df_pca_Integ_combined_24data_seurat$dataset <- factor(df_pca_Integ_combined_24data_seurat$dataset , levels = c("DTP1", "DTP2", "DTP3", "DTP4", "DTP5", "DTP6", "DTP7", "DTP8", "BM1", "BM2", "BM3", "LN1", "LN2", "LUNG3", "LUNG4", "LUNG5", "LUNG6", "ADP3", "PBMC1", "PBMC2",  "PBMC3", "SKIN1", "SKIN2", "SPLEEN1")) 
+
+
+# Plot PCA   
+pca_plot_Integ_combined_24data_seurat <-  ggplot(df_pca_Integ_combined_24data_seurat, aes(PC1,PC2, color = dataset)) + geom_point(aes(shape = dataset), size=6 , stroke = 1.4) + labs(x=paste0("PC1 (",pca_perc[1],"%)"), y=paste0("PC2 (",pca_perc[2],"%)")) +  theme(axis.text = element_text(size = 17, face="bold", colour = "black"), axis.title.y = element_text(color="black", size=15, face="bold"),  axis.title.x  = element_text(color="black", size=17, face="bold"),  legend.title = element_text(face = "bold" , size = 17),  legend.text = element_text(size = 16), legend.key.size = unit(1, "cm"), legend.key.width = unit(0.5,"cm"), legend.key = element_rect(fill = "white")) + scale_shape_manual(values = c(7, 7, 7, 7, 7, 7, 7,7, 16, 16, 16, 2, 2, 17, 17, 17, 17, 5, 18, 18, 18, 21, 21, 3))
+
+plot(pca_plot_Integ_combined_24data_seurat)
+
+# Extract average expression of 500 top gene from PC1 and PC2 (HVGs)
+PC1_Genes <- data.frame(sort(abs(pca$rotation[,"PC1"]), decreasing=TRUE)[1:500])
+PC2_Genes <- data.frame(sort(abs(pca$rotation[,"PC2"]), decreasing=TRUE)[1:500])
+union_genes_Integ_combined_24data_seurat <- union(rownames(PC1_Genes) , rownames(PC2_Genes))
+input_heatmap_Integ_combined_24data_seurat <- Average_data_Integ_combined_24data_seurat$RNA[rownames(Average_data_Integ_combined_24data_seurat$RNA) %in% union_genes_Integ_combined_24data_seurat,]
+
+# Export the data if needed
+#write.csv(union_genes, "union_genes.csv")
+#write.csv(PC1_Genes, "df_500PC1.csv")
+#write.csv(PC2_Genes, "df_500PC2.csv")
+
+# Prepare the input data for the heatmap
+input_heatmap_Integ_combined_24data_seurat <- t(apply((input_heatmap_Integ_combined_24data_seurat), 1, function(x){
+  mean <- mean(x)
+  SD <- sd(x)
+  Z_score <- (x-mean)/SD
+  Z_score
+}))
+
+# Construct heatmap
+input_heatmap_Integ_combined_24data_seurat <- as.data.frame(input_heatmap_Integ_combined_24data_seurat)
+parallelDist_dtw <- hclust(parDist(x = as.matrix(input_heatmap_Integ_combined_24data_seurat), method = "dtw") , method="ward")
+parallelDist_dtw_log2_de_or <-input_heatmap_Integ_combined_24data_seurat[parallelDist_dtw$order,]  # Don't forget to change the input here
+
+# Elbow plot to determine the number of clusters of the heatmap
+ggplot(parallelDist_dtw$height %>% as.tibble() %>% add_column(groups = length(parallelDist_dtw$height):1) , aes(x=groups, y=value)) +geom_point() + geom_line() + xlim(0,20)
+
+row_cutree <- data.frame(cutree(parallelDist_dtw, k = 6)) # Adjust number of k based on your data
+colnames(row_cutree) <- "cluster"
+parallelDist_dtw_log2_de_or <- parallelDist_dtw_log2_de_or %>%  rownames_to_column %>%  
+                               right_join( row_cutree %>%  rownames_to_column %>%  select(cluster ,rowname ) , by = "rowname")
+parallelDist_dtw_log2_de_or <- parallelDist_dtw_log2_de_or[parallelDist_dtw$order,]%>% cbind.data.frame(index=seq(1:nrow(.)))
+
+DF_cluster_annotation <- rowAnnotation( df = parallelDist_dtw_log2_de_or%>%remove_rownames()%>%column_to_rownames()%>%select(cluster), name = "cluster" , show_annotation_name = c(TRUE) , width = unit (0.5 , "cm"), show_legend = TRUE, col = list(cluster = c( "1" = "purple4", "2" = "royalblue1", "3" = "orangered2", "4" = "chartreuse4", "5" = "hotpink2", "6" = "mediumaquamarine", "7" = "midnightblue", "8" = "lightslateblue")))
+
+out_heatmap_Integ_combined_24data_seurat <- Heatmap(parallelDist_dtw_log2_de_or%>%remove_rownames()%>%column_to_rownames()%>%select(-cluster,-index),  col = circlize::colorRamp2(c(-3,0,3), c("green","black","red")), name = "Average Gene Expression (Z-score)", cluster_columns = F, show_column_dend = F, cluster_rows = F, show_row_names = T, show_column_names = T, na_col = "grey" , row_names_gp = gpar(fontsize = 1))
+
+# Visualise
+# draw(out_heatmap_Integ_combined_24data_seurat + DF_cluster_annotation, row_split = parallelDist_dtw_log2_de_or$cluster)
+draw(out_heatmap_Integ_combined_24data_seurat, row_split = parallelDist_dtw_log2_de_or$cluster) #show gene name
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+
+HeapmapCluster_Gene_list <-list(cluster1=row_cutree %>% rownames_to_column() %>% filter(cluster=="1")%>%select(rowname)%>%unlist%>%as.character(), cluster2=row_cutree %>% rownames_to_column() %>% filter(cluster=="2")%>%select(rowname)%>%unlist%>%as.character(), cluster3=row_cutree %>% rownames_to_column() %>% filter(cluster=="3")%>%select(rowname)%>%unlist%>%as.character(), cluster4=row_cutree %>% rownames_to_column() %>% filter(cluster=="4")%>%select(rowname)%>%unlist%>%as.character(), cluster5=row_cutree %>% rownames_to_column() %>% filter(cluster=="5")%>%select(rowname)%>%unlist%>%as.character(), cluster6=row_cutree %>% rownames_to_column() %>% filter(cluster=="6")%>%select(rowname)%>%unlist%>%as.character())
+
+HeapmapCluster_Gene_list[1]
+
+```
+
+NOTE : Lots of genes are fibroblast related genes and gene involving with selenium element ("SELENOW", "SELENOP", and "SELENOM") 
+
+
+```{r}
+
+####################################### WE NOW FOCUSING ON THE GENE SET FROM THE CLUSTER 1 OF THE HEATMAP
+
+# Integ_combined_24data_seurat_norm <- NormalizeData(Integ_combined_24data_seurat, normalization.method = "LogNormalize", scale.factor = 10000)
+
+# the data should be normalize before the next step (to compare the avg exp. and DE) but the list/level genes will not change -> the level just look naturally and correctly to do so
+# however, running this line cause an error "cannot add more cells ???" will figure it out later, but there is no error if you're subset some cell for normalize instead of normalize the whole data
+
+DefaultAssay(Integ_combined_24data_seurat) <- "RNA"
+Integ_combined_24data_seurat
+
+Idents(Integ_combined_24data_seurat) <- "dataset"
+
+features_24data_seurat_gene_set1_HM1 <- c("ISG15","MXRA8", "ID3", "IFI6","PRDX1","TMEM59","PLPP3", "LEPROT", "IFI44L", "OLFML3", "NES", "MPZ","RGS5", "GAS5","CFH","NUCKS1","LAPTM4A","PPP1CB","CYP1B1","CALM2", "NRXN1","COL3A1", "IGFBP2", "IGFBP5", "ITM2C", "FBLN2", 
+"CTNNB1", "CCK", "ZBTB20", "FSTL1","TF", "RARRES1","MSX1","TMEM150C", "SPARCL1","SELENOP", "MAP1B", "SKP1", "CXCL14",
+"SPARC", "MSX2", "HNRNPH1", "RACK1","DST","HMGN3", "SNHG5", "MARCKS","IGFBP3", "COL1A2", "SEM1", "PCOLCE", "CALD1",
+"PTN","RARRES2", "PLAT", "LY6E", "ALDH1A1", "OMD", "ITGB1","PLAC9","ADIRF","ACTA2", "IFITM1","IFITM3", "DKK3")
+DotPlot(Integ_combined_24data_seurat, features = features_24data_seurat_gene_set1_HM1) + RotatedAxis()
+
+features_24data_seurat_gene_set1_HM2 <- c("MDK", "AHNAK","PDGFD", "CRYAB", "TAGLN",  "A2M", "TUBA1A",  "IGFBP6",  "NDUFA4L2", "HMGB1", "RGCC","ITM2B","ARGLU1",
+"DAD1", "GZMB", "IFI27","SRP14","EID1", "TPM1", "UACA","CRABP1", "MORF4L1","ELOB","GABARAPL2", "PMP22","CCL3",
+"CCL4", "COL1A1", "LGALS3BP", "BST2", "NOP53", "SELENOW", "ID1","MYL9", "PMEPA1", "SON", "COL18A1", "S100B","SELENOM",
+"LGALS1", "DDX17", "GPM6B", "MAGED2", "XIST", "ITM2A", "BEX3", "PGRMC1", "MT-ND3", "CTGF", "SEPT7", "MT-RNR1","MT-RNR2")
+DotPlot(Integ_combined_24data_seurat, features = features_24data_seurat_gene_set1_HM1) + RotatedAxis()
+
+features_24data_seurat_selenoprotein <- c("SELENOW", "SEPW1", "SELENOP", "SEPP1", "SELP", "SEPP", "SELENOM", "SELM")
+DotPlot(Integ_combined_24data_seurat, features = features_24data_seurat_selenoprotein) + RotatedAxis()
+
+#DotPlot(Seurat_22data, features = features_selenoprotein, group.by = "dataset", cols = c("blue", "red")) + RotatedAxis()
+
+```
+```{r}
+
+VlnPlot(Integ_combined_24data_seurat, features = c("SELENOW","SELENOP", "SELENOM"),pt.size = 0, combine = FALSE)
+
+```
+
+
