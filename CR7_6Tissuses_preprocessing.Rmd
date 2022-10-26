@@ -1,0 +1,711 @@
+---
+title: "Data pre-processing - Cell Ranger 7.0.0"
+output: html_document
+date: '2022-07-11'
+---
+
+ALL DATASETS USED IN THIS PROJECT WERE DOWLOADED AS FASTQ FILES 
+PROCESSED WITH CELL RANGER 7.0.0 - REFERENCE = HUMAN GRCH38-2020-A
+
+```{r}
+library(Seurat)
+library(SeuratObject)
+library(SeuratData)
+library(patchwork)
+library(dplyr)
+```
+
+
+1. DENTAL PULP DATASETS
+
+```{r}
+
+# DTP_01 - GSE185222 - SRR16175793 - PRJNA768274 (Frontier Immunology - Opasawaschai)
+
+DTP_01 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/DTP01") 
+DTP_01 <- CreateSeuratObject(counts = DTP_01, project = "Dental_pulp", min.cells = 3, min.features = 200)
+DTP_01
+
+DTP_01[["percent.mt"]] <- PercentageFeatureSet(DTP_01, pattern = "^MT-")
+DTP_01 <- subset(DTP_01, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(DTP_01, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+DTP_01 <- NormalizeData(DTP_01, normalization.method = "LogNormalize", scale.factor = 10000)
+DTP_01 <- FindVariableFeatures(DTP_01, selection.method = "vst", nfeatures = 2000)
+DTP_01 <- ScaleData(DTP_01)
+DTP_01 <- RunPCA(DTP_01, features = VariableFeatures(object = DTP_01))
+DTP_01 <- FindNeighbors(DTP_01, dims = 1:10)
+DTP_01 <- FindClusters(DTP_01, resolution = 0.5)
+
+DTP_01 <- RunUMAP(DTP_01, dims = 1:10)
+DimPlot(DTP_01, reduction = "umap")
+
+
+# PULP1-5 from "SINGLE CELL ATLAS OF HUMAN TEETH" - iSCIENCE -- GSE161267 - PMID: 33997688
+
+pulp1 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/pulp1/newpulp1") 
+pulp1 <- CreateSeuratObject(counts = pulp1, project = "Dental pulp", min.cells = 3, min.features = 200)
+pulp1
+
+pulp1[["percent.mt"]] <- PercentageFeatureSet(pulp1, pattern = "^MT-")
+pulp1 <- subset(pulp1, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(pulp1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+pulp1 <- NormalizeData(pulp1, normalization.method = "LogNormalize", scale.factor = 10000)
+pulp1 <- FindVariableFeatures(pulp1, selection.method = "vst", nfeatures = 2000)
+pulp1 <- ScaleData(pulp1)
+pulp1 <- RunPCA(pulp1, features = VariableFeatures(object = pulp1))
+pulp1 <- FindNeighbors(pulp1, dims = 1:10)
+pulp1 <- FindClusters(pulp1, resolution = 0.5)
+
+pulp1 <- RunUMAP(pulp1, dims = 1:10)
+DimPlot(pulp1, reduction = "umap")
+
+##
+
+pulp2 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/pulp2/newpulp2") 
+pulp2 <- CreateSeuratObject(counts = pulp2, project = "Dental pulp", min.cells = 3, min.features = 200)
+pulp2
+
+pulp2[["percent.mt"]] <- PercentageFeatureSet(pulp2, pattern = "^MT-")
+pulp2 <- subset(pulp2, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(pulp2, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+pulp2 <- NormalizeData(pulp2, normalization.method = "LogNormalize", scale.factor = 10000)
+pulp2 <- FindVariableFeatures(pulp2, selection.method = "vst", nfeatures = 2000)
+pulp2 <- ScaleData(pulp2)
+pulp2 <- RunPCA(pulp2, features = VariableFeatures(object = pulp2))
+pulp2 <- FindNeighbors(pulp2, dims = 1:10)
+pulp2 <- FindClusters(pulp2, resolution = 0.5)
+
+pulp2 <- RunUMAP(pulp2, dims = 1:10)
+DimPlot(pulp2, reduction = "umap")
+
+##
+
+pulp3 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/pulp3/newpulp3") 
+pulp3 <- CreateSeuratObject(counts = pulp3, project = "Dental pulp", min.cells = 3, min.features = 200)
+pulp3
+
+pulp3[["percent.mt"]] <- PercentageFeatureSet(pulp3, pattern = "^MT-")
+pulp3 <- subset(pulp3, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(pulp3, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+pulp3 <- NormalizeData(pulp3, normalization.method = "LogNormalize", scale.factor = 10000)
+pulp3 <- FindVariableFeatures(pulp3, selection.method = "vst", nfeatures = 2000)
+pulp3 <- ScaleData(pulp3)
+pulp3 <- RunPCA(pulp3, features = VariableFeatures(object = pulp3))
+pulp3 <- FindNeighbors(pulp3, dims = 1:10)
+pulp3 <- FindClusters(pulp3, resolution = 0.5)
+
+pulp3 <- RunUMAP(pulp3, dims = 1:10)
+DimPlot(pulp3, reduction = "umap")
+
+##
+
+pulp4 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/pulp4/newpulp4") 
+pulp4 <- CreateSeuratObject(counts = pulp4, project = "Dental pulp", min.cells = 3, min.features = 200)
+pulp4
+
+pulp4[["percent.mt"]] <- PercentageFeatureSet(pulp4, pattern = "^MT-")
+pulp4 <- subset(pulp4, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(pulp4, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+pulp4 <- NormalizeData(pulp4, normalization.method = "LogNormalize", scale.factor = 10000)
+pulp4 <- FindVariableFeatures(pulp4, selection.method = "vst", nfeatures = 2000)
+pulp4 <- ScaleData(pulp4)
+pulp4 <- RunPCA(pulp4, features = VariableFeatures(object = pulp4))
+pulp4 <- FindNeighbors(pulp4, dims = 1:10)
+pulp4 <- FindClusters(pulp4, resolution = 0.5)
+
+pulp4 <- RunUMAP(pulp4, dims = 1:10)
+DimPlot(pulp4, reduction = "umap")
+
+##
+
+pulp5 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/pulp5/newpulp5") 
+pulp5 <- CreateSeuratObject(counts = pulp5, project = "Dental pulp", min.cells = 3, min.features = 200)
+pulp5
+
+pulp5[["percent.mt"]] <- PercentageFeatureSet(pulp5, pattern = "^MT-")
+pulp5 <- subset(pulp5, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(pulp5, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+pulp5 <- NormalizeData(pulp5, normalization.method = "LogNormalize", scale.factor = 10000)
+pulp5 <- FindVariableFeatures(pulp5, selection.method = "vst", nfeatures = 2000)
+pulp5 <- ScaleData(pulp5)
+pulp5 <- RunPCA(pulp5, features = VariableFeatures(object = pulp5))
+pulp5 <- FindNeighbors(pulp5, dims = 1:10)
+pulp5 <- FindClusters(pulp5, resolution = 0.5)
+
+pulp5 <- RunUMAP(pulp5, dims = 1:10)
+DimPlot(pulp5, reduction = "umap")
+
+
+# DTP_MH 3 Datasets from GSE146123 -- PMID: 32968047
+
+DTP_MH1 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/DTP_MH1")
+DTP_MH1 <- CreateSeuratObject(counts = DTP_MH1, project = "Dental pulp", min.cells = 3, min.features = 200)
+DTP_MH1
+
+DTP_MH1[["percent.mt"]] <- PercentageFeatureSet(DTP_MH1, pattern = "^MT-")
+DTP_MH1 <- subset(DTP_MH1, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(DTP_MH1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+DTP_MH1 <- NormalizeData(DTP_MH1, normalization.method = "LogNormalize", scale.factor = 10000)
+DTP_MH1 <- FindVariableFeatures(DTP_MH1, selection.method = "vst", nfeatures = 2000)
+DTP_MH1 <- ScaleData(DTP_MH1)
+DTP_MH1 <- RunPCA(DTP_MH1, features = VariableFeatures(object = DTP_MH1))
+DTP_MH1 <- FindNeighbors(DTP_MH1, dims = 1:10)
+DTP_MH1 <- FindClusters(DTP_MH1, resolution = 0.5)
+
+DTP_MH1 <- RunUMAP(DTP_MH1, dims = 1:10)
+DimPlot(DTP_MH1, reduction = "umap")
+
+##
+
+DTP_MH2 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/DTP_MH2")
+DTP_MH2 <- CreateSeuratObject(counts = DTP_MH2, project = "Dental pulp", min.cells = 3, min.features = 200)
+DTP_MH2
+
+DTP_MH2[["percent.mt"]] <- PercentageFeatureSet(DTP_MH2, pattern = "^MT-")
+DTP_MH2 <- subset(DTP_MH2, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(DTP_MH2, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+DTP_MH2 <- NormalizeData(DTP_MH2, normalization.method = "LogNormalize", scale.factor = 10000)
+DTP_MH2 <- FindVariableFeatures(DTP_MH2, selection.method = "vst", nfeatures = 2000)
+DTP_MH2 <- ScaleData(DTP_MH2)
+DTP_MH2 <- RunPCA(DTP_MH2, features = VariableFeatures(object = DTP_MH2))
+DTP_MH2 <- FindNeighbors(DTP_MH2, dims = 1:10)
+DTP_MH2 <- FindClusters(DTP_MH2, resolution = 0.5)
+
+DTP_MH2 <- RunUMAP(DTP_MH2, dims = 1:10)
+DimPlot(DTP_MH2, reduction = "umap")
+
+##
+
+DTP_MH3 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/DTP_MH3")
+DTP_MH3 <- CreateSeuratObject(counts = DTP_MH3, project = "Dental pulp", min.cells = 3, min.features = 200)
+DTP_MH3
+
+DTP_MH3[["percent.mt"]] <- PercentageFeatureSet(DTP_MH3, pattern = "^MT-")
+DTP_MH3 <- subset(DTP_MH3, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(DTP_MH3, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+DTP_MH3 <- NormalizeData(DTP_MH3, normalization.method = "LogNormalize", scale.factor = 10000)
+DTP_MH3 <- FindVariableFeatures(DTP_MH3, selection.method = "vst", nfeatures = 2000)
+DTP_MH3 <- ScaleData(DTP_MH3)
+DTP_MH3 <- RunPCA(DTP_MH3, features = VariableFeatures(object = DTP_MH3))
+DTP_MH3 <- FindNeighbors(DTP_MH3, dims = 1:10)
+DTP_MH3 <- FindClusters(DTP_MH3, resolution = 0.5)
+
+DTP_MH3 <- RunUMAP(DTP_MH3, dims = 1:10)
+DimPlot(DTP_MH3, reduction = "umap")
+
+```
+
+
+
+2. PBMC DATASETS FROM 10X PUBLIC DATASETS - Processed with Cellranger 7 #
+
+```{r}
+
+# 1K PBMC prepared by 10X 3' V2 chemistry
+
+New_pbmc1k <- Read10X("/home/poppy/yard/run_cellranger_count/run_count_1kpbmcs_v2/outs/filtered_feature_bc_matrix")
+New_pbmc1k <- CreateSeuratObject(counts = New_pbmc1k, project = "Dental_pulp", min.cells = 3, min.features = 200)
+New_pbmc1k
+
+New_pbmc1k[["percent.mt"]] <- PercentageFeatureSet(New_pbmc1k, pattern = "^MT-")
+New_pbmc1k <- subset(New_pbmc1k, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(New_pbmc1k, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+New_pbmc1k <- NormalizeData(New_pbmc1k, normalization.method = "LogNormalize", scale.factor = 10000)
+New_pbmc1k <- FindVariableFeatures(New_pbmc1k, selection.method = "vst", nfeatures = 2000)
+New_pbmc1k <- ScaleData(New_pbmc1k)
+New_pbmc1k <- RunPCA(New_pbmc1k, features = VariableFeatures(object = New_pbmc1k))
+New_pbmc1k <- FindNeighbors(New_pbmc1k, dims = 1:10)
+New_pbmc1k <- FindClusters(New_pbmc1k, resolution = 0.5)
+
+New_pbmc1k <- RunUMAP(New_pbmc1k, dims = 1:10)
+DimPlot(New_pbmc1k, reduction = "umap")
+
+# 8K PBMC prepared by 10X 3' V2 chemistry
+
+New_pbmc8k <- Read10X("/home/poppy/yard/run_cellranger_count/run_count_8kpbmcs/outs/filtered_feature_bc_matrix")
+New_pbmc8k <- CreateSeuratObject(counts = New_pbmc8k, project = "Dental_pulp", min.cells = 3, min.features = 200)
+New_pbmc8k
+
+New_pbmc8k[["percent.mt"]] <- PercentageFeatureSet(New_pbmc8k, pattern = "^MT-")
+New_pbmc8k <- subset(New_pbmc8k, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(New_pbmc8k, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+New_pbmc8k <- NormalizeData(New_pbmc8k, normalization.method = "LogNormalize", scale.factor = 10000)
+New_pbmc8k <- FindVariableFeatures(New_pbmc8k, selection.method = "vst", nfeatures = 2000)
+New_pbmc8k <- ScaleData(New_pbmc8k)
+New_pbmc8k <- RunPCA(New_pbmc8k, features = VariableFeatures(object = New_pbmc8k))
+New_pbmc8k <- FindNeighbors(New_pbmc8k, dims = 1:10)
+New_pbmc8k <- FindClusters(New_pbmc8k, resolution = 0.5)
+
+New_pbmc8k <- RunUMAP(New_pbmc8k, dims = 1:10)
+DimPlot(New_pbmc8k, reduction = "umap")
+
+```
+
+
+3. BONE MARROW DATASETS 
+   BM - CD34+ (marker of hematopoietic stem cells) - PRJEB37166
+   
+```{r}
+
+## ERR7363152
+
+BM_CD34_1 <- Read10X("/home/poppy/Documents/Dentalpulp/Data/BM1_CD34_HCA")  
+BM_CD34_1 <- CreateSeuratObject(counts = BM_CD34_1, project = "Dental_pulp", min.cells = 3, min.features = 200)
+BM_CD34_1
+
+
+BM_CD34_1[["percent.mt"]] <- PercentageFeatureSet(BM_CD34_1, pattern = "^MT-")
+BM_CD34_1 <- subset(BM_CD34_1, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(BM_CD34_1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+BM_CD34_1 <- NormalizeData(BM_CD34_1, normalization.method = "LogNormalize", scale.factor = 10000)
+BM_CD34_1 <- FindVariableFeatures(BM_CD34_1, selection.method = "vst", nfeatures = 2000)
+BM_CD34_1 <- ScaleData(BM_CD34_1)
+BM_CD34_1 <- RunPCA(BM_CD34_1, features = VariableFeatures(object = BM_CD34_1))
+BM_CD34_1 <- FindNeighbors(BM_CD34_1, dims = 1:10)
+BM_CD34_1 <- FindClusters(BM_CD34_1, resolution = 0.5)
+
+BM_CD34_1 <- RunUMAP(BM_CD34_1, dims = 1:10)
+DimPlot(BM_CD34_1, reduction = "umap")
+
+## ERR7363153
+
+BM_CD34_2 <- Read10X("/home/poppy/Documents/Dentalpulp/Data/BM2_CD34_HCA")   
+BM_CD34_2 <- CreateSeuratObject(counts = BM_CD34_2, project = "Dental_pulp", min.cells = 3, min.features = 200)
+BM_CD34_2
+
+
+BM_CD34_2[["percent.mt"]] <- PercentageFeatureSet(BM_CD34_2, pattern = "^MT-")
+BM_CD34_2 <- subset(BM_CD34_2, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(BM_CD34_2, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+BM_CD34_2 <- NormalizeData(BM_CD34_2, normalization.method = "LogNormalize", scale.factor = 10000)
+BM_CD34_2 <- FindVariableFeatures(BM_CD34_2, selection.method = "vst", nfeatures = 2000)
+BM_CD34_2 <- ScaleData(BM_CD34_2)
+BM_CD34_2 <- RunPCA(BM_CD34_2, features = VariableFeatures(object = BM_CD34_2))
+BM_CD34_2 <- FindNeighbors(BM_CD34_2, dims = 1:10)
+BM_CD34_2 <- FindClusters(BM_CD34_2, resolution = 0.5)
+
+BM_CD34_2 <- RunUMAP(BM_CD34_2, dims = 1:10)
+DimPlot(BM_CD34_2, reduction = "umap")
+
+```
+
+
+4. ADIPOSE TISSUE DATASETS 
+   CD45 negative adipose cell from lean individuals - PMID: 33907320
+
+```{r}
+
+## lean - GSM4717152
+
+ADP_L1 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/ADP/L1")  
+ADP_L1 <- CreateSeuratObject(counts = ADP_L1, project = "Dental pulp", min.cells = 3, min.features = 200)
+ADP_L1
+
+ADP_L1[["percent.mt"]] <- PercentageFeatureSet(ADP_L1, pattern = "^MT-")
+ADP_L1 <- subset(ADP_L1, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(ADP_L1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+ADP_L1 <- NormalizeData(ADP_L1, normalization.method = "LogNormalize", scale.factor = 10000)
+ADP_L1 <- FindVariableFeatures(ADP_L1, selection.method = "vst", nfeatures = 2000)
+ADP_L1 <- ScaleData(ADP_L1)
+ADP_L1 <- RunPCA(ADP_L1, features = VariableFeatures(object = ADP_L1))
+ADP_L1 <- FindNeighbors(ADP_L1, dims = 1:10)
+ADP_L1 <- FindClusters(ADP_L1, resolution = 0.5)
+
+ADP_L1 <- RunUMAP(ADP_L1, dims = 1:10)
+DimPlot(ADP_L1, reduction = "umap")
+
+## - lean - GSM4717154
+
+ADP_L2 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/ADP/L2")   # new cell ranger 7 and new ref
+ADP_L2 <- CreateSeuratObject(counts = ADP_L2, project = "Dental pulp", min.cells = 3, min.features = 200)
+ADP_L2
+
+ADP_L2[["percent.mt"]] <- PercentageFeatureSet(ADP_L2, pattern = "^MT-")
+ADP_L2 <- subset(ADP_L2, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(ADP_L2, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+ADP_L2 <- NormalizeData(ADP_L2, normalization.method = "LogNormalize", scale.factor = 10000)
+ADP_L2 <- FindVariableFeatures(ADP_L2, selection.method = "vst", nfeatures = 2000)
+ADP_L2 <- ScaleData(ADP_L2)
+ADP_L2 <- RunPCA(ADP_L2, features = VariableFeatures(object = ADP_L2))
+ADP_L2 <- FindNeighbors(ADP_L2, dims = 1:10)
+ADP_L2 <- FindClusters(ADP_L2, resolution = 0.5)
+
+ADP_L2 <- RunUMAP(ADP_L2, dims = 1:10)
+DimPlot(ADP_L2, reduction = "umap")
+
+```
+
+
+5. LUNG DATASETS
+   Project: PRJEB52292
+   Study Title: A spatial multi-omics atlas of the human lung reveals a novel immune cell survival niche
+
+```{r}
+
+## Run access = ERR9588945
+
+Lung_CR7_1 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/Lung/newlung")
+Lung_CR7_1 <- CreateSeuratObject(counts = Lung_CR7_1, project = "Dental_pulp", min.cells = 3, min.features = 200)
+Lung_CR7_1
+
+Lung_CR7_1[["percent.mt"]] <- PercentageFeatureSet(Lung_CR7_1, pattern = "^MT-")
+Lung_CR7_1 <- subset(Lung_CR7_1, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(Lung_CR7_1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+Lung_CR7_1 <- NormalizeData(Lung_CR7_1, normalization.method = "LogNormalize", scale.factor = 10000)
+Lung_CR7_1 <- FindVariableFeatures(Lung_CR7_1, selection.method = "vst", nfeatures = 2000)
+Lung_CR7_1 <- ScaleData(Lung_CR7_1)
+Lung_CR7_1 <- RunPCA(Lung_CR7_1, features = VariableFeatures(object = Lung_CR7_1))
+Lung_CR7_1 <- FindNeighbors(Lung_CR7_1, dims = 1:10)
+Lung_CR7_1 <- FindClusters(Lung_CR7_1, resolution = 0.5)
+
+Lung_CR7_1 <- RunUMAP(Lung_CR7_1, dims = 1:10)
+DimPlot(Lung_CR7_1, reduction = "umap")
+
+## Run access = ERR9588946
+
+Lung_CR7_2 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/Lung/newlung2")
+Lung_CR7_2 <- CreateSeuratObject(counts = Lung_CR7_2, project = "Dental_pulp", min.cells = 3, min.features = 200)
+Lung_CR7_2
+
+Lung_CR7_2[["percent.mt"]] <- PercentageFeatureSet(Lung_CR7_2, pattern = "^MT-")
+Lung_CR7_2 <- subset(Lung_CR7_2, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(Lung_CR7_2, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+Lung_CR7_2 <- NormalizeData(Lung_CR7_2, normalization.method = "LogNormalize", scale.factor = 10000)
+Lung_CR7_2 <- FindVariableFeatures(Lung_CR7_2, selection.method = "vst", nfeatures = 2000)
+Lung_CR7_2 <- ScaleData(Lung_CR7_2)
+Lung_CR7_2 <- RunPCA(Lung_CR7_2, features = VariableFeatures(object = Lung_CR7_2))
+Lung_CR7_2 <- FindNeighbors(Lung_CR7_2, dims = 1:10)
+Lung_CR7_2 <- FindClusters(Lung_CR7_2, resolution = 0.5)
+
+Lung_CR7_2 <- RunUMAP(Lung_CR7_2, dims = 1:10)
+DimPlot(Lung_CR7_2, reduction = "umap")
+
+```
+
+
+6. SKIN DATASETS 
+   PRJNA754272 
+   Single-cell RNA profiling of human skin reveals age-related loss of dermal sheath cells and their contribution to a juvenile phenotype
+   Skin from young individuals - SRR15440581 and SRR15440583
+
+```{r}
+
+## SRR81 - young individual
+
+Skin_1 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/Skin/newskin")
+Skin_1 <- CreateSeuratObject(counts = Skin_1, project = "Dental pulp", min.cells = 3, min.features = 200)
+Skin_1
+
+Skin_1[["percent.mt"]] <- PercentageFeatureSet(Skin_1, pattern = "^MT-")
+Skin_1 <- subset(Skin_1, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(Skin_1, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+Skin_1 <- NormalizeData(Skin_1, normalization.method = "LogNormalize", scale.factor = 10000)
+Skin_1 <- FindVariableFeatures(Skin_1, selection.method = "vst", nfeatures = 2000)
+Skin_1 <- ScaleData(Skin_1)
+Skin_1 <- RunPCA(Skin_1, features = VariableFeatures(object = Skin_1))
+Skin_1 <- FindNeighbors(Skin_1, dims = 1:10)
+Skin_1 <- FindClusters(Skin_1, resolution = 0.5)
+
+Skin_1 <- RunUMAP(Skin_1, dims = 1:10)
+DimPlot(Skin_1, reduction = "umap")
+
+## SRR83 - young individual
+
+Skin_2 <- Read10X(data.dir = "/home/poppy/Documents/Dentalpulp/Data/Skin/newskin2")
+Skin_2 <- CreateSeuratObject(counts = Skin_2, project = "Dental pulp", min.cells = 3, min.features = 200)
+Skin_2
+
+Skin_2[["percent.mt"]] <- PercentageFeatureSet(Skin_2, pattern = "^MT-")
+Skin_2 <- subset(Skin_2, subset = nFeature_RNA > 200 & nFeature_RNA < 4000 & percent.mt < 10)
+VlnPlot(Skin_2, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+
+Skin_2 <- NormalizeData(Skin_2, normalization.method = "LogNormalize", scale.factor = 10000)
+Skin_2 <- FindVariableFeatures(Skin_2, selection.method = "vst", nfeatures = 2000)
+Skin_2 <- ScaleData(Skin_2)
+Skin_2 <- RunPCA(Skin_2, features = VariableFeatures(object = Skin_2))
+Skin_2 <- FindNeighbors(Skin_2, dims = 1:10)
+Skin_2 <- FindClusters(Skin_2, resolution = 0.5)
+
+Skin_2 <- RunUMAP(Skin_2, dims = 1:10)
+DimPlot(Skin_2, reduction = "umap")
+
+```
+
+
+```{r}
+
+DTP_01[["RNA"]]@counts 
+pulp1[["RNA"]]@counts
+pulp2[["RNA"]]@counts
+pulp3[["RNA"]]@counts
+pulp4[["RNA"]]@counts
+pulp5[["RNA"]]@counts
+DTP_MH1[["RNA"]]@counts
+DTP_MH2[["RNA"]]@counts
+DTP_MH3[["RNA"]]@counts
+New_pbmc1k[["RNA"]]@counts
+New_pbmc8k[["RNA"]]@counts
+BM_CD34_1[["RNA"]]@counts
+BM_CD34_2[["RNA"]]@counts
+ADP_L1[["RNA"]]@counts
+ADP_L2[["RNA"]]@counts
+Lung_CR7_1[["RNA"]]@counts
+Lung_CR7_2[["RNA"]]@counts
+Skin_1[["RNA"]]@counts
+Skin_2[["RNA"]]@counts
+
+
+DTP_01@meta.data$dataset <- "DTP1"
+pulp1@meta.data$dataset <- "DTP2"
+pulp2@meta.data$dataset <- "DTP3"
+pulp3@meta.data$dataset <- "DTP4"
+pulp4@meta.data$dataset <- "DTP5"
+pulp5@meta.data$dataset <- "DTP6"
+DTP_MH1@meta.data$dataset <- "DTP7"
+DTP_MH2@meta.data$dataset <- "DTP8"
+DTP_MH3@meta.data$dataset <- "DTP9"
+New_pbmc1k@meta.data$dataset <- "PBMC1"
+New_pbmc8k@meta.data$dataset <- "PBMC2"
+BM_CD34_1@meta.data$dataset <- "BM1"
+BM_CD34_2@meta.data$dataset <- "BM2"
+ADP_L1@meta.data$dataset <- "ADP1"
+ADP_L2@meta.data$dataset <- "ADP2"
+Lung_CR7_1@meta.data$dataset <- "LUNG1"
+Lung_CR7_2@meta.data$dataset <- "LUNG2"
+Skin_1@meta.data$dataset <- "SKIN1"
+Skin_2@meta.data$dataset <- "SKIN2"
+
+
+DTP_01@meta.data$tissue <- "DTP"
+pulp1@meta.data$tissue <- "DTP"
+pulp2@meta.data$tissue <- "DTP"
+pulp3@meta.data$tissue <- "DTP"
+pulp4@meta.data$tissue <- "DTP"
+pulp5@meta.data$tissue <- "DTP"
+DTP_MH1@meta.data$tissue <- "DTP"
+DTP_MH2@meta.data$tissue <- "DTP"
+DTP_MH3@meta.data$tissue <- "DTP"
+New_pbmc1k@meta.data$tissue <- "PBMC"
+New_pbmc8k@meta.data$tissue <- "PBMC"
+BM_CD34_1@meta.data$tissue <- "BM"
+BM_CD34_2@meta.data$tissue <- "BM"
+ADP_L1@meta.data$tissue <- "ADP"
+ADP_L2@meta.data$tissue <- "ADP"
+Lung_CR7_1@meta.data$tissue <- "LUNG"
+Lung_CR7_2@meta.data$tissue <- "LUNG"
+Skin_1@meta.data$tissue <- "SKIN"
+Skin_2@meta.data$tissue <- "SKIN"
+
+```
+
+
+--------------------------- SEURAT INTEGRATION ----------------------------
+
+# FIGURE 1A - 1B --- INTEGRATION OF 19 DATASETS FROM 6 TISSUES
+
+```{r}
+
+library(Seurat)
+library(patchwork)
+library(ggplot2)
+
+Integ_list_new_anno <- list(DTP_01, pulp1, pulp2, pulp3, pulp4, pulp5, DTP_MH1, DTP_MH2, DTP_MH3, 
+                            New_pbmc1k, New_pbmc8k, 
+                            BM_CD34_1, BM_CD34_2,
+                            ADP_L1, ADP_L2,
+                            Lung_CR7_1, Lung_CR7_2,
+                            Skin_1, Skin_2)
+
+Integ_list_new_anno
+
+Integ_list_new_anno_seurat <- lapply(X = Integ_list_new_anno, FUN = function(x) {
+    x <- NormalizeData(x)
+    x <- FindVariableFeatures(x, selection.method = "vst", nfeatures = 2000)
+})
+
+features_new_anno_seurat <- SelectIntegrationFeatures(object.list = Integ_list_new_anno_seurat)
+In_anchors_new_anno_seurat <- FindIntegrationAnchors(object.list = Integ_list_new_anno_seurat, anchor.features = features_new_anno_seurat)
+
+Integ_combined_new_anno_seurat <- IntegrateData(anchorset = In_anchors_new_anno_seurat)
+DefaultAssay(Integ_combined_new_anno_seurat) <- "integrated"
+
+Integ_combined_new_anno_seurat <- ScaleData(Integ_combined_new_anno_seurat, verbose = FALSE)
+Integ_combined_new_anno_seurat <- RunPCA(Integ_combined_new_anno_seurat, npcs = 30, verbose = FALSE)
+Integ_combined_new_anno_seurat <- RunUMAP(Integ_combined_new_anno_seurat, reduction = "pca", dims = 1:30)
+Integ_combined_new_anno_seurat <- FindNeighbors(Integ_combined_new_anno_seurat, reduction = "pca", dims = 1:30)
+Integ_combined_new_anno_seurat <- FindClusters(Integ_combined_new_anno_seurat, resolution = 0.5)
+
+DimPlot(Integ_combined_new_anno_seurat, reduction = "umap", group.by = "tissue", 
+                              cols = c("#5A655EB2","#466983B2", "#CC9900B2" , "#802268B2", "#BA6338B2", "#749B58B2"))
+
+DimPlot(Integ_combined_new_anno_seurat, reduction = "umap", cols = c("#749B58B2", "#466983B2",
+        "#BA6338B2", "#5DB1DDB2", "#802268B2", "#D595A7B2", "#837B8DB2", "#C75127B2", "#D58F5CB2", "#7A65A5B2", "#E4AF69B2", 
+        "#3B1B53B2", "#CDDEB7B2", "#612A79B2", "#AE1F63B2", "#E7C76FB2", "#5A655EB2", "#CC9900B2", "#99CC00B2", "#A9A9A9B2"))
+
+DimPlot(Integ_combined_new_anno_seurat, reduction = "umap", group.by = "dataset")
+DimPlot(Integ_combined_new_anno_seurat, reduction = "umap", split.by = "tissue")
+
+# Normalize data after integration
+Integ_combined_new_anno_seurat <- NormalizeData(Integ_combined_new_anno_seurat, normalization.method = "LogNormalize", scale.factor = 10000)
+
+# Save the integrated data
+saveRDS(Integ_combined_new_anno_seurat, file = "/home/poppy/Dental pulp/Integration output/SeuratInteg_CR7_Ref2020-A_6tis_2nd.rds")
+
+```
+
+
+
+----------------------- CLUSTER ANNOTATION -----------------------
+
+# Gene markers used for the annotation - Supplementary figure 1
+
+```{r}
+
+library(ggsci)
+library(ggplot2)
+library(gridExtra)
+library(viridis)
+
+All <- readRDS(file = "\\Users\\Poppy\\Downloads\\SeuratInteg_CR7_Ref2020-A_6tis_2nd.rds")
+DotPlot(All, assay = "RNA", 
+        features = c("PTPRC",                                           # CD45-Immune cells
+                     "CD19", "CD79A", "JCHAIN", "IGKC",                 # B cells
+                     "CD3D", "CD3E", "NCR1", "NKG7", "GZMA", "PRF1",    # T and NK
+                     "C1QA", "LYZ", "LST1", "MS4A7", "CD14",            # Mono- and Macrophages
+                     "DMP1",                                            # Odontoblast 
+                     "COL1A1", "COL1A2", "COL3A1", "DCN",               # Fibroblast
+                     "SFN", "FDCSP", "ODAM",                            # Epithelial cells
+                     "KRT1", "KRT5", "KRT14", "KRT15",                  # Keratinocytes
+                     "SOX10", "MBP", "GFRA3",                           # Schwann cells
+                     "SELE", "PECAM1", "EMCN",                          # Endothelial
+                     "ACTA2", "FRZB", "NOTCH3", "MYH11",                # MSC
+                     "CSPG4",                                           # Pericytes 
+                     "TAGLN", "TPM2",                                   # SMC
+                     "MKI67", "TOP2A",                                  # Proliferating
+                     "HBA1", "HBB"                                      # RBC
+                    ),                                                             
+        cols = c("lightgrey", "blue"), 
+        cluster.idents = TRUE) + RotatedAxis() +
+  geom_point(aes(size=pct.exp), shape = 21, colour="black", stroke=0.5) +
+  scale_colour_viridis(option = "cividis") +
+  guides(size=guide_legend(override.aes=list(shape=21, colour="black", fill="white")))
+
+```
+
+# Rename Clusters
+
+```{r, dpi=500}
+
+cluster_ids <- c("Fibroblast_1", "NK/T cells_1", "Fibroblast_2", "Fibroblast_3", 
+                 "Unknown", "MSC-like_1", "Endothelial_1", "Fibroblast_4", "Macrophages", 
+                 "Non-myelinated Schw", "MSC-like_2", "Myelinated Schw", "Endothelial_2",
+                 "Monocytes", "NK/T cells_2", "B cells", "Epithelial",
+                 "Odontoblast", "Pro_Fibroblast")
+
+names(cluster_ids) <- levels(Integ_new_CR7_seurat)
+Integ_new_CR7_seurat_ClusterAnno <- RenameIdents(Integ_new_CR7_seurat, cluster_ids)
+
+DimPlot(Integ_new_CR7_seurat_ClusterAnno, reduction = "umap", repel = TRUE, label = TRUE, label.size = 3) + NoLegend()
+
+saveRDS(Integ_new_CR7_seurat_ClusterAnno, file = "/home/poppy/Dental pulp/Integration output/SeuratInteg_CR7_Ref2020-A_6tis_annotated.rds")
+
+```
+
+
+FIGURE 1D - Cell type Fraction
+
+```{r, dpi=500}
+
+Integ_new_CR7_seurat <- readRDS(file = "/home/poppy/Dental pulp/Integration output/SeuratInteg_CR7_Ref2020-A_6tis_2nd.rds")
+Integ_new_CR7_seurat
+
+ggplot(Integ_new_CR7_seurat[[]], aes(seurat_clusters, fill=tissue)) + geom_bar(position="fill") + scale_fill_manual(values=c("#5A655EB2","#466983B2", "#CC9900B2" , "#802268B2", "#BA6338B2", "#749B58B2"))
+
+```
+
+
+
+========================================================================================================
+
+Subset the fibroblasts: clusters 0, 2, 3, and 7 for further downstream analysis 
+FIGURE 2E, 2F
+
+```{r}
+
+Idents(Integ_new_CR7_seurat) <- "seurat_clusters"
+levels(Integ_new_CR7_seurat)
+
+Integ_new_CR7_fibroblast <- subset(x = Integ_new_CR7_seurat, idents = c("0", "2", "3", "7"))
+Integ_new_CR7_fibroblast
+
+DefaultAssay(Integ_new_CR7_fibroblast) <- "integrated"
+
+Integ_new_CR7_fibroblast <- NormalizeData(Integ_new_CR7_fibroblast, normalization.method = "LogNormalize")
+Integ_new_CR7_fibroblast <- FindVariableFeatures(Integ_new_CR7_fibroblast, selection.method = "vst", nfeatures = 2000)
+Integ_new_CR7_fibroblast <- ScaleData(Integ_new_CR7_fibroblast)
+Integ_new_CR7_fibroblast <- RunPCA(Integ_new_CR7_fibroblast, npcs = 30, features = VariableFeatures(object = Integ_new_CR7_fibroblast))
+Integ_new_CR7_fibroblast <- FindNeighbors(Integ_new_CR7_fibroblast, dims = 1:10)
+Integ_new_CR7_fibroblast <- FindClusters(Integ_new_CR7_fibroblast, resolution = 0.5)
+
+Integ_new_CR7_fibroblast <- RunUMAP(Integ_new_CR7_fibroblast, dims = 1:10)
+DimPlot(Integ_new_CR7_fibroblast, reduction = "umap", label = TRUE)
+DimPlot(Integ_new_CR7_fibroblast, reduction = "umap", group.by = "dataset")
+DimPlot(Integ_new_CR7_fibroblast, reduction = "umap", group.by = "tissue", 
+        cols = c("#5A655EB2","#466983B2", "#CC9900B2" , "#802268B2", "#BA6338B2", "#749B58B2"))
+
+saveRDS(Integ_new_CR7_fibroblast, file = "/home/poppy/Dental pulp/Integration output/SeuratInteg_CR7_subset_Fibroflast_6tis_IntegAssay.rds")
+
+```
+
+
+# Cell fraction : FIGURE 2G
+
+```{r}
+
+ggplot(Integ_new_CR7_fibroblast[[]], aes(seurat_clusters, fill=tissue)) + geom_bar(position="fill") + scale_fill_manual(values=c("#5A655EB2","#466983B2", "#CC9900B2" , "#802268B2", "#BA6338B2", "#749B58B2"))
+
+```
+
+
+# Expression of PTN and MDK in DP fibroblast
+
+```{r, fig.width=3, fig.height=4}
+
+# FIGURE 2D
+Idents(Integ_new_CR7_fibroblast) <- "dataset"
+DotPlot(Integ_new_CR7_seurat, features = c("PTN", "MDK"), assay = "RNA") + RotatedAxis() +
+  geom_point(aes(size=pct.exp), shape = 21, colour="black", stroke=0.5) +
+  scale_colour_viridis(option = "cividis", direction = 1) +
+  guides(size=guide_legend(override.aes=list(shape=21, colour="black", fill="white")))
+
+# FIGURE 2H
+Idents(Integ_new_CR7_fibroblast) <- "seurat_clusters"
+DotPlot(Integ_new_CR7_seurat, features = c("PTN", "MDK"), assay = "RNA") + RotatedAxis() +
+  geom_point(aes(size=pct.exp), shape = 21, colour="black", stroke=0.5) +
+  scale_colour_viridis(option = "cividis", direction = 1) +
+  guides(size=guide_legend(override.aes=list(shape=21, colour="black", fill="white")))
+
+```
+
+
+
+
+
