@@ -1,0 +1,144 @@
+---
+title: "Cellphone results plot"
+project: "Dental-pulp"
+author: "Martin Loza"
+date: "2022/08/23"
+---
+
+On this workflow I aim to plot the results from the dental-pulp cellphone analysis
+for the Fibroblast and Odontoblast cells
+
+## Setup 
+
+```{r setup, message = FALSE}
+library(dplyr)
+library(ggplot2)
+library(here)
+library(patchwork)
+library(stringr)
+library(chorddiag)
+library(igraph)
+library(circlize)
+
+# Global variables
+seed = 777
+```
+
+# Load data
+
+Load results from cellphone
+
+```{r}
+# data <- read.table(file = here("Data/pvalues.txt"), header = TRUE, sep = "\t")
+data <- read.table(file = here("Data/significant_means.txt"), header = TRUE, sep = "\t")
+```
+
+## Setup
+
+### Filter columns 
+
+Select Fibroblasts and Odontoblast interactions. Retain gene_a and gene_b information
+
+```{r}
+n_col <- colnames(data)
+idx_gene <- which(n_col %in% c("gene_a", "gene_b"))
+idx_cells <- which(str_detect(string = n_col, pattern = "Fibroblast") &
+                     str_detect(string = n_col, pattern = "Odontoblast"))
+keep_idx <- c(idx_gene, idx_cells)
+data <- data[,keep_idx]
+rm(n_col, idx_cells, idx_gene, keep_idx)
+```
+
+In the interactions we have a transmitter and a receptor. For now let's analyse as:
+Transmitter = Fibroblasts
+Receptor = Odontoblast 
+
+```{r}
+colnames(data)
+```
+Then, we should remove the other columns
+
+```{r}
+data <- data[,1:9]
+colnames(data)
+```
+
+## Test
+remove fibroblast 7 and 6
+
+```{r}
+data <- data %>% select(!(Fibroblast_6.Odontoblast: Fibroblast_7.Odontoblast))
+```
+
+### Filter rows
+
+Filter rows with empty gene info
+```{r}
+rmv_idx <- union(which(data$gene_a == ""), which(data$gene_b == ""))
+data <- data[-rmv_idx,]
+rm(rmv_idx)
+```
+
+Filter rows not significant in the five Fibroblast groups
+
+```{r}
+rmv_idx <- which(rowSums(x = data[,3:ncol(data)], na.rm = TRUE) == 0)
+data <- data[-rmv_idx,]
+data
+```
+
+## Chord plot: Top 25
+
+Sum the interaction in the fibroblast groups
+
+```{r}
+interaction = rowSums(data[,3:ncol(data)], na.rm = TRUE)
+df <- data %>% mutate("interaction" = interaction) %>% select(gene_a, gene_b, interaction)
+
+#Filter top interaction
+df <- df %>% filter(interaction != 0) %>% top_n(n = 25, wt = interaction) %>% arrange(desc(interaction))
+```
+
+```{r}
+#get adjacency list
+g <- graph.data.frame(df[,1:2])
+adj <- as.matrix(get.adjacency(g))
+
+#Fill the adj matrix 
+#for each interaction
+for(i in seq_len(nrow(df))){
+  current_interaction <- df[i,] 
+  adj[current_interaction$gene_a, current_interaction$gene_b] <- current_interaction$interaction
+}
+```
+
+```{r, fig.width=4}
+adj2 <- adj[rev(rownames(adj)),]
+arr <- data.frame(c(rep("MDK", 2), rep("PTN", 2)), c("LRP1", "PTPRZ1", "PTPRZ1", "PTPRS"), rep(1, 4))
+arr2 <- data.frame(c(rep("MDK", 2), rep("PTN", 2)), c("LRP1", "PTPRZ1", "PTPRZ1", "PTPRS"), 1:4)
+arr2 <- data.frame(c(rep("MDK", 2), rep("PTN", 2)), c("LRP1", "PTPRZ1", "PTPRZ1", "PTPRS"), rep(2, 4))
+arrows <- data.frame(c(rep("MDK", 2), rep("PTN", 2)), c("LRP1", "PTPRZ1", "PTPRZ1", "PTPRS"), rep("black", 4))
+  
+pdf(file = here("chord_plot_Odontoblast_220827.pdf"), width = 7, height = 7, bg = "white")
+
+par(cex = 0.75)
+circos.par(start.degree = 40, clock.wise = TRUE)
+
+set.seed(111)
+chordDiagram(adj2,annotationTrack = c("grid"),
+             transparency = 0.25,
+             directional = 1,
+             direction.type = "arrows",
+             link.arr.col = arrows,
+             link.arr.length = 0.6, 
+             preAllocateTracks = list(track.height = max(strwidth(unlist(dimnames(adj2))))))
+circos.track(track.index = 1, panel.fun = function(x, y) {
+    circos.text(CELL_META$xcenter, CELL_META$ylim[1], CELL_META$sector.index, 
+        facing = "clockwise", niceFacing = TRUE, adj = c(0, 0.5))
+}, bg.border = NA)
+circos.clear()
+dev.off()
+```
+
+
+
