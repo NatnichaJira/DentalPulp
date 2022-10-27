@@ -22,7 +22,6 @@ x
 DefaultAssay(x) <- "RNA"
 x
 
-
 ggplot(x[[]], aes(dataset)) +
   geom_bar() + RotatedAxis()
 
@@ -33,21 +32,15 @@ ggplot(x[[]], aes(seurat_clusters, fill=dataset)) +
   geom_bar(position="fill") + RotatedAxis()
 
 plot_coord2(x, expand="dataset", label=TRUE) & NoAxes() + NoLegend()
-
 plot_coord2(x, expand="tissue", label=TRUE) & NoAxes() + NoLegend()
-
 VlnPlot(x, c("nCount_RNA", "nFeature_RNA", "percent.mt", "percent.ribo"), pt.size=.1, ncol=2, assay="RNA")
-
 FeaturePlot(x, "percent.mt", label=TRUE) + NoLegend() + NoAxes()
-
 
 
 x <- CellCycleScoring(x, cc.genes.updated.2019$s.genes, cc.genes.updated.2019$g2m.genes)
 
 FeaturePlot(x, c("S.Score", "G2M.Score"), order=TRUE, blend=TRUE, label=TRUE)[[3]] + NoAxes()
-
 DimPlot(x, label=TRUE) + NoLegend() + NoAxes()
-
 plot_coord2(x, expand="seurat_clusters", label=TRUE) & NoAxes() + NoLegend()
 
 ggplot(x[[]], aes(seurat_clusters)) +
